@@ -13,7 +13,7 @@ export class UsersService {
     private userModel: Model<UserDocument>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserDocument> {
     const createdUser = new this.userModel(createUserDto);
     createdUser.role = UserRole.USER;
     return createdUser.save();
@@ -22,7 +22,7 @@ export class UsersService {
   async createAdminUser(createUserDto: CreateUserDto): Promise<UserDocument> {
     const createdUser = new this.userModel(createUserDto);
     createdUser.role = UserRole.ADMIN;
-    return this.create(createUserDto);
+    return this.createUser(createUserDto);
   }
 
   async findAll(): Promise<UserDocument[]> {
