@@ -39,7 +39,7 @@ export class AuthService {
       throw new BadRequestException('Password is incorrect');
     }
 
-    const newUser = await this.usersService.create({
+    const newUser = await this.usersService.createUser({
       ...createUserDto,
       password: hash,
     });
