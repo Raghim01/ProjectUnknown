@@ -28,7 +28,7 @@ export class UsersController {
     return this.usersService.createUser(createUserDto);
   }
 
-  @Post('/admin')
+  @Post(':admin')
   @UseGuards(AccessTokenGuard)
   @Role(UserRole.ADMIN)
   @UseGuards(AuthGuard(), RolesGuard)
@@ -40,13 +40,6 @@ export class UsersController {
     };
   }
 
-  @UseGuards(AccessTokenGuard)
-  @UseGuards(AuthGuard())
-  @Get('/current-user')
-  async getCurrentUser(@GetUser() user: User): Promise<User> {
-    return user;
-  }
-
   @Get()
   @UseGuards(AccessTokenGuard)
   @UseGuards(AuthGuard())
@@ -56,13 +49,21 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @UseGuards(AuthGuard())
+  @Get(':current-user')
+  async getCurrentUser(@GetUser() user: User): Promise<User> {
+    return user;
+  }
+
+  @Role(UserRole.ADMIN)
+  @UseGuards(AuthGuard(), RolesGuard, AccessTokenGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.usersService.findById(id);
   }
 
   @UseGuards(AccessTokenGuard)
-  @UseGuards(AuthGuard())
+  @Role(UserRole.ADMIN)
+  @UseGuards(AuthGuard(), RolesGuard)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
