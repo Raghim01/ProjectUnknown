@@ -1,17 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 import { UserRole } from '../enum/user-role.enum';
-import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 export type UserDocument = User & Document;
 
 @Schema({})
 export class User {
-  @CreateDateColumn()
-  createdOn: Date = new Date();
+  @Prop({ default: () => new Date() })
+  createdOn: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date = new Date();
+  @Prop({ default: () => new Date() })
+  updatedAt: Date;
 
   @Prop({ required: true })
   name: string;
@@ -25,7 +24,7 @@ export class User {
   @Prop({ enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
-  @Prop({ nullable: false, default: true })
+  @Prop({ nullable: false, default: false })
   status: boolean;
 
   @Prop({ nullable: true })
