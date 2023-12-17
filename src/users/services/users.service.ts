@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../entities/user.entity';
 import { Model } from 'mongoose';
 import { UserRole } from '../enum/user-role.enum';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +16,7 @@ export class UsersService {
 
   async createUser(createUserDto: CreateUserDto): Promise<UserDocument> {
     const createdUser = new this.userModel(createUserDto);
+    createdUser.confirmationToken = crypto.randomBytes(32).toString('hex');
     createdUser.role = UserRole.USER;
     return await createdUser.save();
   }

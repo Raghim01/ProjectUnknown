@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -11,15 +12,22 @@ import { AuthDto } from '../dto/auth.dto';
 import * as dotenv from 'dotenv';
 import { JwtHelper } from 'src/common/jwt/token-helper.functions';
 import { UpdatePasswordDto } from '../dto/update-user_password.dto';
-import { UserRole } from 'src/users/enum/user-role.enum';
-
+import { MailService } from 'src/common/mail/mail.service';
+import { User, UserDocument } from 'src/users/entities/user.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { randomBytes } from 'crypto';
+import { RecoverPasswordDto } from '../dto/recover-password.dto';
 dotenv.config();
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
     private usersService: UsersService,
     private jwtHelper: JwtHelper,
+    private mailService: MailService,
   ) {}
 
   async signUp(createUserDto: CreateUserDto): Promise<any> {
@@ -52,6 +60,8 @@ export class AuthService {
     );
     await this.jwtHelper.updateRefreshToken(newUser.id, tokens.refreshToken);
 
+    await this.mailService.sendUserConfirmation(newUser);
+
     return { newUser, tokens };
   }
 
@@ -82,6 +92,19 @@ export class AuthService {
     );
 
     return { userExists, tokens };
+  }
+
+  async confirmEmail(confirmationToken: string) {
+    const result = await this.userModel.updateOne(
+      { confirmationToken: confirmationToken },
+      { $set: { confirmationToken: null, status: true } },
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new NotFoundException('Token invalid or not updated.');
+    }
+
+    return result;
   }
 
   async updateUserPassword(
@@ -117,6 +140,47 @@ export class AuthService {
     );
 
     await this.usersService.update(existingUser._id, existingUser);
+  }
+
+  async sendRecoverEmail(email: string) {
+    const user = await this.userModel.findOne({ email });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.recoveryToken = randomBytes(32).toString('hex');
+    await user.save();
+
+    await this.mailService.sendPasswordRecover(user);
+  }
+
+  async recoverPassword(
+    recoverToken: string,
+    recoverPasswordDto: RecoverPasswordDto,
+  ) {
+    const user = await this.userModel.findOne({ recoveryToken: recoverToken });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (
+      recoverPasswordDto.newPassword !== recoverPasswordDto.confirmNewPassword
+    ) {
+      throw new HttpException(
+        'Password must be the same',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    user.password = await this.jwtHelper.hashData(
+      recoverPasswordDto.newPassword,
+    );
+
+    await this.usersService.update(user.id, user);
+
+    return { message: 'Password recovered successfully' };
   }
 
   async logout(userId: string) {

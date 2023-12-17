@@ -18,6 +18,9 @@ import { RefreshTokenGuard } from 'src/common/guards/refreshToken.guard';
 import { JwtHelper } from 'src/common/jwt/token-helper.functions';
 import { UpdatePasswordDto } from '../dto/update-user_password.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { RecoverPasswordDto } from '../dto/recover-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -41,6 +44,24 @@ export class AuthController {
     @Body() updatePassword: UpdatePasswordDto,
   ) {
     await this.authService.updateUserPassword(email, updatePassword);
+  }
+
+  @Post('/confirm-email/:token')
+  async confirmEmail(@Param('token') token: string) {
+    await this.authService.confirmEmail(token);
+  }
+
+  @Post('/password-recover-email')
+  async sendPasswordRecover(@Body('email') email: string) {
+    await this.authService.sendRecoverEmail(email);
+  }
+
+  @Post('/password-recover/:token')
+  async passwordRecover(
+    @Param('token') token: string,
+    @Body() recoverPasswordDto: RecoverPasswordDto,
+  ) {
+    await this.authService.recoverPassword(token, recoverPasswordDto);
   }
 
   @UseGuards(AccessTokenGuard)
