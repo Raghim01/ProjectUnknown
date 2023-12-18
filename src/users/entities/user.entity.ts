@@ -30,6 +30,9 @@ export class User {
   @Prop({ nullable: true })
   confirmationToken: string;
 
+  @Prop()
+  confirmationTokenExpires: Date;
+
   @Prop({ nullable: true })
   recoveryToken: string;
 

@@ -18,6 +18,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomBytes } from 'crypto';
 import { RecoverPasswordDto } from '../dto/recover-password.dto';
+import {
+  createVerificationToken,
+  verifyToken,
+} from 'src/common/helper/create-verification-tokens';
 dotenv.config();
 
 @Injectable()
@@ -47,8 +51,11 @@ export class AuthService {
       throw new BadRequestException('Password is incorrect');
     }
 
+    const verificationTokenAtributes = await createVerificationToken();
     const newUser = await this.usersService.createUser({
       ...createUserDto,
+      confirmationToken: verificationTokenAtributes.token,
+      confirmationTokenExpires: verificationTokenAtributes.expirationTime,
       password: hash,
     });
 
@@ -95,16 +102,11 @@ export class AuthService {
   }
 
   async confirmEmail(confirmationToken: string) {
-    const result = await this.userModel.updateOne(
-      { confirmationToken: confirmationToken },
-      { $set: { confirmationToken: null, status: true } },
-    );
+    const user = await this.userModel.findOne({
+      confirmationToken: confirmationToken,
+    });
 
-    if (result.modifiedCount === 0) {
-      throw new NotFoundException('Token invalid or not updated.');
-    }
-
-    return result;
+    await verifyToken(this.userModel, user.id, confirmationToken);
   }
 
   async updateUserPassword(
@@ -149,7 +151,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    user.recoveryToken = randomBytes(32).toString('hex');
+    user.recoveryToken = randomBytes(8).toString('hex');
     await user.save();
 
     await this.mailService.sendPasswordRecover(user);

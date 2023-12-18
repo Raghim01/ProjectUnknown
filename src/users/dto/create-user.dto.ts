@@ -11,11 +11,14 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
-  password: string;
-
-  @IsNotEmpty()
-  @IsString()
   confirmPassword: string;
 
   refreshToken: string;
+
+  confirmationToken: string;
+  confirmationTokenExpires: Date;
+
+  @IsNotEmpty()
+  @IsString()
+  password: string;
 }

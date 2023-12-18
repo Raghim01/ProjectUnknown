@@ -16,7 +16,6 @@ export class UsersService {
 
   async createUser(createUserDto: CreateUserDto): Promise<UserDocument> {
     const createdUser = new this.userModel(createUserDto);
-    createdUser.confirmationToken = crypto.randomBytes(32).toString('hex');
     createdUser.role = UserRole.USER;
     return await createdUser.save();
   }
