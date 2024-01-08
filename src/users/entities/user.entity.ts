@@ -1,14 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, ObjectId } from 'mongoose';
+import { Document } from 'mongoose';
 import { UserRole } from '../enum/user-role.enum';
+import { Exclude } from 'class-transformer';
 
 export type UserDocument = User & Document;
 
 @Schema({})
 export class User {
   @Prop({ default: () => new Date() })
+  @Exclude()
   createdOn: Date;
 
+  @Exclude()
   @Prop({ default: () => new Date() })
   updatedAt: Date;
 
@@ -18,6 +21,7 @@ export class User {
   @Prop({ required: true, unique: true })
   email: string;
 
+  @Exclude()
   @Prop({ required: true })
   password: string;
 

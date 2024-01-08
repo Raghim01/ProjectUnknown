@@ -6,6 +6,7 @@ import { User, UserDocument } from '../entities/user.entity';
 import { Model } from 'mongoose';
 import { UserRole } from '../enum/user-role.enum';
 import * as crypto from 'crypto';
+import { paginate } from 'src/common/pagination/pagination';
 
 @Injectable()
 export class UsersService {
@@ -26,8 +27,12 @@ export class UsersService {
     return await this.createUser(createUserDto);
   }
 
-  async findAll(): Promise<UserDocument[]> {
-    return await this.userModel.find().exec();
+  async findAll() {
+    return paginate(
+      this.userModel
+        .find({}, '_id name email role status createdOn updatedAt')
+        .lean(),
+    );
   }
 
   async findById(id: string): Promise<UserDocument> {
@@ -44,7 +49,7 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<UserDocument> {
-    return await this.userModel.findOne({ email: email }).exec();
+    return await this.userModel.findOne({ email: email }).lean().exec();
   }
 
   async update(
