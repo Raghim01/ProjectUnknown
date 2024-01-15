@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
+  Inject,
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -18,10 +20,21 @@ import { User } from '../entities/user.entity';
 import { Role } from 'src/common/decorators/role.decorator';
 import { UserRole } from '../enum/user-role.enum';
 import { RolesGuard } from 'src/common/guards/role.guard';
+import {
+  CACHE_MANAGER,
+  Cache,
+  CacheInterceptor,
+  CacheKey,
+  CacheTTL,
+} from '@nestjs/cache-manager';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
@@ -40,6 +53,9 @@ export class UsersController {
     };
   }
 
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30)
+  @CacheKey('all-users')
   @Get()
   @UseGuards(AccessTokenGuard)
   @UseGuards(AuthGuard())

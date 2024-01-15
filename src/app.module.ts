@@ -1,5 +1,4 @@
-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -10,9 +9,13 @@ import { LoggerInterceptor } from './interceptors/logger.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { BullModule } from '@nestjs/bull';
 import { MailModule } from './common/mail/mailer.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+    }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async () => ({
@@ -31,7 +34,6 @@ import { MailModule } from './common/mail/mailer.module';
   ],
   controllers: [],
   providers: [
-    AppService,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggerInterceptor,

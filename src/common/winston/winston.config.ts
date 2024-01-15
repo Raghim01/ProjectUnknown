@@ -10,11 +10,5 @@ export const winstonConfig: WinstonModuleOptions = {
       filename: 'application.log',
       dirname: 'logs',
     }),
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple(),
-      ),
-    }),
   ],
 };
