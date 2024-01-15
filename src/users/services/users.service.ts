@@ -5,7 +5,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../entities/user.entity';
 import { Model } from 'mongoose';
 import { UserRole } from '../enum/user-role.enum';
-import * as crypto from 'crypto';
 import { paginate } from 'src/common/pagination/pagination';
 
 @Injectable()

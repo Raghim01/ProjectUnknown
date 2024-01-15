@@ -8,14 +8,26 @@ import { winstonConfig } from './common/winston/winston.config';
 import { WinstonModule } from 'nest-winston';
 import { LoggerInterceptor } from './interceptors/logger.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { BullModule } from '@nestjs/bull';
+import { MailModule } from './common/mail/mailer.module';
 
 @Module({
   imports: [
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async () => ({
+        redis: {
+          host: 'localhost',
+          port: 6379,
+        },
+      }),
+    }),
     WinstonModule.forRoot(winstonConfig),
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(process.env.DB_URL),
     UsersModule,
     AuthModule,
+    MailModule,
   ],
   controllers: [],
   providers: [

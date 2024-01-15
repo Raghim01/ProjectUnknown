@@ -67,7 +67,7 @@ export class AuthService {
     );
     await this.jwtHelper.updateRefreshToken(newUser.id, tokens.refreshToken);
 
-    await this.mailService.sendUserConfirmation(newUser);
+    await this.mailService.sendConfirmationEmail(newUser);
 
     return { newUser, tokens };
   }
